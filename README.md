@@ -1,73 +1,48 @@
-# Example: GPIO
+# Wake Up Test
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
-
-This test code shows how to configure GPIO and how to use it with interruption.
+This test code shows how to configure deep sleep with the fastest wake up time pissible as far as I know (currently 44ms).
+Example is based on GPIO example from ESP-IDF
 
 ## GPIO functions:
 
-| GPIO     | Direction | Configuration                                          |
-| -------- | --------- | ------------------------------------------------------ |
-| GPIO18   | output    |                                                        |
-| GPIO19   | output    |                                                        |
-| GPIO4    | input     | pulled up, interrupt from rising edge and falling edge |
-| GPIO5    | input     | pulled up, interrupt from rising edge                  |
+### Watcher:
 
-## Test:
- 1. Connect GPIO18 with GPIO4
- 2. Connect GPIO19 with GPIO5
- 3. Generate pulses on GPIO18/19, that triggers interrupt on GPIO4/5
+| GPIO     | Direction | Configuration                         |  Description                                            |
+| -------- | --------- | ------------------------------------- | ------------------------------------------------------- |
+| GPIO18   | output    |                                       | Sends wake up signal to sleeper                         |
+| GPIO4    | input     | pulled up, interrupt from rising edge | Receives ACK from sleeper                               |
+| GPIO0    | input     | pulled up, interrupt from rising edge | Tied to boot button on board, triggers wake up sequence |
 
-## How to use example
+### Sleper:
 
-Before project configuration and build, be sure to set the correct chip target using `idf.py set-target <chip_name>`.
+| GPIO     | Direction | Configuration               |  Description                                       |
+| -------- | --------- | --------------------------- | -------------------------------------------------- |
+| GPIO18   | output    |                             | Sends wake up ACK signal to sleeper                |
+| GPIO2    | input     | tied to EXT0 wake up source | When pulled from high to low it wakes the board up |
+
+## Test
+
+ 1. Connect watcher GPIO18 with sleeper GPIO2
+ 2. Connect watcher GPIO4 with sleeper GPIO18
+ 3. Generate pulses on GPIO0 (boot button) to test wake up times. 
 
 ### Hardware Required
 
-* A development board with ESP32/ESP32-S2/ESP32-C3 SoC (e.g., ESP32-DevKitC, ESP-WROVER-KIT, etc.)
-* A USB cable for Power supply and programming
-* Some jumper wires to connect GPIOs.
+- Two development boards with ESP32/ESP32-S2/ESP32-C3 SoC (e.g., ESP32-DevKitC, ESP-WROVER-KIT, etc.)
+- Two USB cables for Power supply and programming
+- Some jumper wires to connect GPIOs.
 
-### Configure the project
 
-### Build and Flash
+## Deep sleep exit time optimisations
+- Serial flasher config
+    + flash SPI mode -> QUIO (improvement of ~5ms)
+    + flash SPI speed -> 80MHz (improvement of ~5ms)
 
-Build the project and flash it to the board, then run the monitor tool to view the serial output:
+- Component config 
+    + default log verbosity -> no output (improvement of ~120 ms)
 
-Run `idf.py -p PORT flash monitor` to build, flash and monitor the project.
+- Bootloader config
+    + bootloader log verbosity -> warning (improvement of ~100ms)
+    + bootloader optimisation level -> optimize for performance (-O2) (improvement of ~ 5ms)
+    + skip image validation when exiting deep sleep (improvement of ~55ms)
 
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the Getting Started Guide for all the steps to configure and use the ESP-IDF to build projects.
-
-* [ESP-IDF Getting Started Guide on ESP32](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html)
-* [ESP-IDF Getting Started Guide on ESP32-S2](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
-* [ESP-IDF Getting Started Guide on ESP32-C3](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/get-started/index.html)
-
-## Example Output
-
-As you run the example, you will see the following log:
-
-```
-I (317) gpio: GPIO[18]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
-I (327) gpio: GPIO[19]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
-I (337) gpio: GPIO[4]| InputEn: 1| OutputEn: 0| OpenDrain: 0| Pullup: 1| Pulldown: 0| Intr:1 
-I (347) gpio: GPIO[5]| InputEn: 1| OutputEn: 0| OpenDrain: 0| Pullup: 1| Pulldown: 0| Intr:1 
-Minimum free heap size: 289892 bytes
-cnt: 0
-cnt: 1
-cnt: 2
-cnt: 3
-cnt: 4
-cnt: 5
-cnt: 6
-cnt: 7
-cnt: 8
-cnt: 9
-cnt: 10
-...
-```
-
-## Troubleshooting
-
-For any technical queries, please open an [issue](https://github.com/espressif/esp-idf/issues) on GitHub. We will get back to you soon.

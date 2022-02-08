@@ -30,22 +30,6 @@ static RTC_DATA_ATTR gpio_config_t io_conf;
 
 static const char* TAG = "[sleeper]";
 
-/*
-    Improvements to wake up time:
-        - Serial flasher config
-            + flash SPI mode -> QUIO (improvement of ~5ms)
-            + flash SPI speed -> 80MHz (improvement of ~5ms)
-        
-        - Component config 
-            + default log verbosity -> no output (improvement of ~120 ms)
-
-        - Bootloader config
-            + bootloader log verbosity -> warning (improvement of ~100ms)
-            + bootloader optimisation level -> optimize for performance (-O2) (improvement of ~ 5ms)
-            + skip image validation when exiting deep sleep (improvement of ~55ms)
-
-    When all applied wake up time goes from 344ms to 44ms
-*/
 
 void go_to_sleep(){
     const int ext_wakeup_pin_1 = 2;
@@ -53,7 +37,7 @@ void go_to_sleep(){
 
     ESP_LOGI(TAG, "Enabling EXT1 wakeup on pin GPIO %d", ext_wakeup_pin_1);
     // esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
-    esp_sleep_enable_ext0_wakeup(2, 1);
+    esp_sleep_enable_ext0_wakeup(2, 0);
 
     ESP_LOGI(TAG, "Entering deep sleep");
 
@@ -62,7 +46,7 @@ void go_to_sleep(){
 
 void app_main(void) {
     switch (esp_sleep_get_wakeup_cause()) {       
-        case ESP_SLEEP_WAKEUP_EXT0:º
+        case ESP_SLEEP_WAKEUP_EXT0:
         case ESP_SLEEP_WAKEUP_EXT1:
             gpio_config(&io_conf);
 
