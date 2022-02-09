@@ -28,7 +28,8 @@ When flashing the ESP32, it is usally necessary to disconnect pin GPIO2 from the
 
  1. Connect watcher GPIO18 with sleeper GPIO18
  2. Connect watcher GPIO2 with sleeper GPIO2
- 3. Generate pulses on GPIO0 (boot button) to test wake up times. 
+ 3. Connect sleeper GPIO15 to GND
+ 4. Generate pulses on GPIO0 (boot button) to test wake up times. 
 
 ### Hardware Required
 
@@ -52,6 +53,8 @@ The default behavior of the system is going to light sleep, to test deep sleep d
     + bootloader log verbosity -> warning (improvement of ~100ms)
     + bootloader optimisation level -> optimize for performance (-O2) (improvement of ~ 5ms)
     + skip image validation when exiting deep sleep (improvement of ~55ms)
+
+- Connect sleeper GPIO15 to GND. It disables bootloader prints at startup. (improvement of ~15ms)
 
 ## Deep sleep vs light sleep
 

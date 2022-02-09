@@ -24,7 +24,7 @@
 #include "esp_log.h"
 
 
-// #define DEEP_SLEEP
+#define DEEP_SLEEP
 
 
 #define WAKE_ACK    18
