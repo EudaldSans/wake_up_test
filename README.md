@@ -9,8 +9,8 @@ Example is based on GPIO example from ESP-IDF
 
 | GPIO     | Direction | Configuration                         |  Description                                            |
 | -------- | --------- | ------------------------------------- | ------------------------------------------------------- |
-| GPIO18   | output    |                                       | Sends wake up signal to sleeper                         |
-| GPIO4    | input     | pulled up, interrupt from rising edge | Receives ACK from sleeper                               |
+| GPIO2    | output    |                                       | Sends wake up signal to sleeper                         |
+| GPIO18   | input     | pulled up, interrupt from rising edge | Receives ACK from sleeper                               |
 | GPIO0    | input     | pulled up, interrupt from rising edge | Tied to boot button on board, triggers wake up sequence |
 
 ### Sleper:
@@ -22,8 +22,8 @@ Example is based on GPIO example from ESP-IDF
 
 ## Test
 
- 1. Connect watcher GPIO18 with sleeper GPIO2
- 2. Connect watcher GPIO4 with sleeper GPIO18
+ 1. Connect watcher GPIO18 with sleeper GPIO18
+ 2. Connect watcher GPIO2 with sleeper GPIO2
  3. Generate pulses on GPIO0 (boot button) to test wake up times. 
 
 ### Hardware Required

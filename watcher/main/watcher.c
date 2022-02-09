@@ -20,11 +20,11 @@
 #include "esp_log.h"
 
 
-#define WAKE_UP_PIN    18
+#define WAKE_UP_PIN    2
 #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<WAKE_UP_PIN))
 
 #define ESP_BUTTON      0
-#define WAKE_UP_ACK     4
+#define WAKE_UP_ACK     18
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<WAKE_UP_ACK) | (1ULL<<ESP_BUTTON))
 #define ESP_INTR_FLAG_DEFAULT 0
 
