@@ -20,12 +20,15 @@
 #include "freertos/queue.h"
 #include "driver/gpio.h"
 
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 
 
 #define WAKE_ACK            18
 #define WAKE_UP_PIN         34
 #define WAKE_UP_LEVEL       0
+
+#define DEEP_SLEEP
 
 #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<WAKE_ACK))
 
@@ -42,40 +45,53 @@ void go_to_sleep(){
     // esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
     esp_sleep_enable_ext0_wakeup(WAKE_UP_PIN, WAKE_UP_LEVEL);
 
-    ESP_LOGI(TAG, "Entering deep sleep");
+    ESP_LOGI(TAG, "Going to sleep");
 
+#ifdef DEEP_SLEEP
     esp_deep_sleep_start();
+#else
+    esp_light_sleep_start();
+#endif
+
 }
 
 void app_main(void) {
-    switch (esp_sleep_get_wakeup_cause()) {       
-        case ESP_SLEEP_WAKEUP_EXT0:
-        case ESP_SLEEP_WAKEUP_EXT1:
-            gpio_config(&io_conf);
+    esp_log_level_set("*", ESP_LOG_INFO); // At this point we can enable logging again for easier debugging  
 
-            gpio_set_level(WAKE_ACK, 1);
-            gpio_set_level(WAKE_ACK, 0);
-            ESP_LOGI(TAG, "Woke up from sleep");
+    while(1) {
+        switch (esp_sleep_get_wakeup_cause()) {    
+            case ESP_SLEEP_WAKEUP_EXT0:
+            case ESP_SLEEP_WAKEUP_EXT1:
 
-            break;
+#ifdef DEEP_SLEEP
+                gpio_config(&io_conf);
+#endif
+                gpio_set_level(WAKE_ACK, 1);
+                gpio_set_level(WAKE_ACK, 0);
+                ESP_LOGI(TAG, "Woke up from sleep");
 
-        case ESP_SLEEP_WAKEUP_TIMER: {
-            ESP_LOGI(TAG, "Woke up from timer.");
-            break;
+                break;
+
+            case ESP_SLEEP_WAKEUP_TIMER: {
+                ESP_LOGI(TAG, "Woke up from timer.");
+                break;
+            }
+            case ESP_SLEEP_WAKEUP_UNDEFINED:
+            default:
+                io_conf.intr_type = GPIO_INTR_DISABLE;
+                io_conf.mode = GPIO_MODE_OUTPUT;
+                io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
+                io_conf.pull_down_en = 1;
+                io_conf.pull_up_en = 0;
+
+                gpio_config(&io_conf);
+
+                ESP_LOGI(TAG, "Not a deep sleep reset");
+                break;
         }
-        case ESP_SLEEP_WAKEUP_UNDEFINED:
-        default:
-            io_conf.intr_type = GPIO_INTR_DISABLE;
-            io_conf.mode = GPIO_MODE_OUTPUT;
-            io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
-            io_conf.pull_down_en = 1;
-            io_conf.pull_up_en = 0;
 
-            ESP_LOGI(TAG, "Not a deep sleep reset");
-            break;
+        ESP_LOGI(TAG, "Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
+
+        go_to_sleep();
     }
-
-    printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
-
-    go_to_sleep();
 }
