@@ -25,7 +25,7 @@
 
 
 #define WAKE_ACK            18
-#define WAKE_UP_PIN         34
+#define WAKE_UP_PIN         33
 #define WAKE_UP_LEVEL       0
 
 #define DEEP_SLEEP
@@ -38,10 +38,7 @@ static const char* TAG = "[sleeper]";
 
 
 void go_to_sleep(){
-    const int ext_wakeup_pin_1 = 2;
-    const uint64_t ext_wakeup_pin_1_mask = 1ULL << ext_wakeup_pin_1;
-
-    ESP_LOGI(TAG, "Enabling EXT1 wakeup on pin GPIO %d", ext_wakeup_pin_1);
+    ESP_LOGI(TAG, "Enabling EXT1 wakeup on pin GPIO %d", WAKE_UP_PIN);
     // esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
     esp_sleep_enable_ext0_wakeup(WAKE_UP_PIN, WAKE_UP_LEVEL);
 
@@ -94,4 +91,55 @@ void app_main(void) {
 
         go_to_sleep();
     }
+}
+
+
+static const char RTC_RODATA_ATTR wake_fmt_str[] = "count=%d\n";
+static const char RTC_RODATA_ATTR sleep_fmt_str[] = "sleeping\n";
+static void RTC_IRAM_ATTR wake_stub() {
+    // Increment the pulse counter
+    s_pulse_count++;
+    // and print the pulse counter value:
+    ets_printf(wake_fmt_str, s_pulse_count);
+
+    if (s_pulse_count >= s_max_pulse_count) {
+        // On revision 0 of ESP32, this function must be called:
+        esp_default_wake_deep_sleep();
+
+        // Return from the wake stub function to continue
+        // booting the firmware.
+        return;
+    }
+    // Pulse count is <s_max_pulse_count, go back to sleep
+    // and wait for more pulses.
+
+    // Wait for pin level to be high.
+    // If we go to sleep when the pin is still low, the chip
+    // will wake up again immediately. Hardware doesn't have
+    // edge trigger support for deep sleep wakeup.
+    do {
+        while (PULSE_CNT_IS_LOW()) {
+            // feed the watchdog
+            REG_WRITE(TIMG_WDTFEED_REG(0), 1);
+        }
+        // debounce, 10ms
+        ets_delay_us(10000);
+    } while (PULSE_CNT_IS_LOW());
+
+    // Print status
+    ets_printf(sleep_fmt_str);
+    // Wait for UART to end transmitting.
+    while (REG_GET_FIELD(UART_STATUS_REG(0), UART_ST_UTX_OUT)) {
+        ;
+    }
+    // Set the pointer of the wake stub function.
+    REG_WRITE(RTC_ENTRY_ADDR_REG, (uint32_t)&wake_stub);
+    // Go to sleep.
+    CLEAR_PERI_REG_MASK(RTC_CNTL_STATE0_REG, RTC_CNTL_SLEEP_EN);
+    SET_PERI_REG_MASK(RTC_CNTL_STATE0_REG, RTC_CNTL_SLEEP_EN);
+    // A few CPU cycles may be necessary for the sleep to start...
+    while (true) {
+        ;
+    }
+    // never reaches here.
 }
