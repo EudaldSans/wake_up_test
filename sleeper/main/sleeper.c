@@ -23,7 +23,10 @@
 #include "esp_log.h"
 
 
-#define WAKE_ACK    18
+#define WAKE_ACK            18
+#define WAKE_UP_PIN         34
+#define WAKE_UP_LEVEL       0
+
 #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<WAKE_ACK))
 
 static RTC_DATA_ATTR gpio_config_t io_conf;
@@ -37,7 +40,7 @@ void go_to_sleep(){
 
     ESP_LOGI(TAG, "Enabling EXT1 wakeup on pin GPIO %d", ext_wakeup_pin_1);
     // esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
-    esp_sleep_enable_ext0_wakeup(2, 0);
+    esp_sleep_enable_ext0_wakeup(WAKE_UP_PIN, WAKE_UP_LEVEL);
 
     ESP_LOGI(TAG, "Entering deep sleep");
 
