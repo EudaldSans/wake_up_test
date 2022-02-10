@@ -9,8 +9,8 @@ Example is based on GPIO example from ESP-IDF
 
 | GPIO     | Direction | Configuration                         |  Description                                            |
 | -------- | --------- | ------------------------------------- | ------------------------------------------------------- |
-| GPIO18   | output    |                                       | Sends wake up signal to sleeper                         |
-| GPIO4    | input     | pulled up, interrupt from rising edge | Receives ACK from sleeper                               |
+| GPIO34   | output    |                                       | Sends wake up signal to sleeper                         |
+| GPIO18   | input     | pulled up, interrupt from rising edge | Receives ACK from sleeper                               |
 | GPIO0    | input     | pulled up, interrupt from rising edge | Tied to boot button on board, triggers wake up sequence |
 
 ### Sleper:
@@ -18,7 +18,7 @@ Example is based on GPIO example from ESP-IDF
 | GPIO     | Direction | Configuration               |  Description                                       |
 | -------- | --------- | --------------------------- | -------------------------------------------------- |
 | GPIO18   | output    |                             | Sends wake up ACK signal to sleeper                |
-| GPIO2    | input     | tied to EXT0 wake up source | When pulled from high to low it wakes the board up |
+| GPIO34   | input     | tied to EXT0 wake up source | When pulled from high to low it wakes the board up |
 
 ## Test
 
