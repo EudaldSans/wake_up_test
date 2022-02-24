@@ -26,7 +26,7 @@
 
 #define WAKE_ACK            18
 #define WAKE_UP_PIN         33
-#define WAKE_UP_LEVEL       0
+#define WAKE_UP_LEVEL       1
 
 #define DEEP_SLEEP
 
@@ -42,11 +42,12 @@ void go_to_sleep(){
     // esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
     esp_sleep_enable_ext0_wakeup(WAKE_UP_PIN, WAKE_UP_LEVEL);
 
-    ESP_LOGI(TAG, "Going to sleep");
+    ESP_LOGI(TAG, "Going to sleep. ZzZ... zZz...\n");
 
 #ifdef DEEP_SLEEP
     esp_deep_sleep_start();
 #else
+    ets_delay_us(5000);
     esp_light_sleep_start();
 #endif
 
